@@ -57,8 +57,8 @@ public class HttpProxyServer {
                 X509Certificate caCert;
                 PrivateKey caPriKey;
                 if (caCertFactory == null) {
-                    caCert = CertUtil.loadCert(classLoader.getResourceAsStream("fullchain.pem"));
-                    caPriKey = CertUtil.loadPriKey(classLoader.getResourceAsStream("privkey.pem"));
+                    caCert = CertUtil.loadCert(classLoader.getResourceAsStream("ca.crt"));
+                    caPriKey = CertUtil.loadPriKey(classLoader.getResourceAsStream("ca_private.der"));
                 } else {
                     caCert = caCertFactory.getCACert();
                     caPriKey = caCertFactory.getCAPriKey();
