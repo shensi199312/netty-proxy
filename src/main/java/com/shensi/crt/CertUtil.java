@@ -67,7 +67,7 @@ public class CertUtil {
      * 生成RSA公私密钥对,长度为2048
      */
     public static KeyPair genKeyPair() throws Exception {
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "XMLY");
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
         keyPairGenerator.initialize(2048, new SecureRandom());
         return keyPairGenerator.genKeyPair();
     }

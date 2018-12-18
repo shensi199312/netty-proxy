@@ -160,11 +160,6 @@ public class HttpProxyServerHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
             ProxyHandler proxyHandler = ProxyHandleFactory.build(proxyConfig);
-      /*
-        添加SSL client hello的Server Name Indication extension(SNI扩展)
-        有些服务器对于client hello不带SNI扩展时会直接返回Received fatal alert: handshake_failure(握手错误)
-        例如：https://cdn.mdn.mozilla.net/static/img/favicon32.7f3da72dcea1.png
-       */
             RequestProto requestProto = new RequestProto(host, port, isSsl);
             ChannelInitializer channelInitializer =
                     isHttp ? new HttpProxyInitializer(channel, requestProto, proxyHandler)

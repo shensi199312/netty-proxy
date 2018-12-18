@@ -20,14 +20,14 @@ public class InterceptHttpProxyServer {
                 .proxyInterceptInitializer(new HttpProxyInterceptInitializer() {
                     @Override
                     public void init(HttpProxyInterceptPipeline pipeline) {
-                        pipeline.addLast(new CertDownIntercept());
-                        pipeline.addLast(new HttpProxyIntercept(){
-                            @Override
-                            public void beforeRequest(Channel clientChannel, HttpRequest httpRequest, HttpProxyInterceptPipeline pipeline) throws Exception {
-                                System.out.println(httpRequest);
-                                pipeline.beforeRequest(clientChannel, httpRequest);
-                            }
-                        });
+//                        pipeline.addLast(new CertDownIntercept());
+//                        pipeline.addLast(new HttpProxyIntercept(){
+//                            @Override
+//                            public void beforeRequest(Channel clientChannel, HttpRequest httpRequest, HttpProxyInterceptPipeline pipeline) throws Exception {
+//                                System.out.println(httpRequest);
+//                                pipeline.beforeRequest(clientChannel, httpRequest);
+//                            }
+//                        });
                         pipeline.addLast(new HttpProxyIntercept() {
                             @Override
                             public void beforeRequest(Channel clientChannel, HttpRequest httpRequest,

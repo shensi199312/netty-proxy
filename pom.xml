@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.shensi</groupId>
-    <artifactId>proxyee</artifactId>
+    <artifactId>netty-proxy</artifactId>
     <version>1.0.4</version>
     <build>
         <plugins>

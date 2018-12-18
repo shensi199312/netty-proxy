@@ -28,7 +28,9 @@ public class HttpProxyServer {
     //http代理隧道握手成功
     public final static HttpResponseStatus SUCCESS = new HttpResponseStatus(200, "Connection established");
     //证书&私钥
-    private HttpProxyCACertFactory caCertFactory;
+//    private CaAndPrivateKey caCertFactory;
+    private CaAndPrivateKey caAndPrivateKey;
+
     //服务端配置
     private HttpProxyServerConfig serverConfig;
     //拦截器
@@ -53,16 +55,21 @@ public class HttpProxyServer {
                 serverConfig.setClientSslCtx(
                         SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
                                 .build());
+
+                //读取classpath下的ca和私钥
                 ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
                 X509Certificate caCert;
                 PrivateKey caPriKey;
-                if (caCertFactory == null) {
+                if (caAndPrivateKey == null) {
                     caCert = CertUtil.loadCert(classLoader.getResourceAsStream("ca.crt"));
                     caPriKey = CertUtil.loadPriKey(classLoader.getResourceAsStream("ca_private.der"));
+                    caAndPrivateKey = new CaAndPrivateKey(caCert, caPriKey);
                 } else {
-                    caCert = caCertFactory.getCACert();
-                    caPriKey = caCertFactory.getCAPriKey();
+                    caCert = caAndPrivateKey.getX509Certificate();
+                    caPriKey = caAndPrivateKey.getPrivateKey();
                 }
+
+
                 //读取CA证书使用者信息
                 serverConfig.setIssuer(CertUtil.getSubject(caCert));
                 //读取CA证书有效时段(server证书有效期超出CA证书的，在手机上会提示证书不安全)
@@ -70,11 +77,13 @@ public class HttpProxyServer {
                 serverConfig.setCaNotAfter(caCert.getNotAfter());
                 //CA私钥用于给动态生成的网站SSL证书签证
                 serverConfig.setCaPriKey(caPriKey);
+
                 //生产一对随机公私钥用于网站SSL证书动态创建
                 KeyPair keyPair = CertUtil.genKeyPair();
                 serverConfig.setServerPriKey(keyPair.getPrivate());
                 serverConfig.setServerPubKey(keyPair.getPublic());
-            } catch (Exception e) {
+            }catch (Exception e){
+                e.printStackTrace();
                 serverConfig.setSupportSsl(false);
             }
         }
@@ -108,8 +117,8 @@ public class HttpProxyServer {
         return this;
     }
 
-    public HttpProxyServer caCertFactory(HttpProxyCACertFactory caCertFactory) {
-        this.caCertFactory = caCertFactory;
+    public HttpProxyServer caCertFactory(CaAndPrivateKey caAndPrivateKey) {
+        this.caAndPrivateKey = caAndPrivateKey;
         return this;
     }
 
