@@ -65,6 +65,12 @@ public class HttpProxyInterceptPipeline implements Iterable<HttpProxyIntercept> 
         return this.defaultIntercept;
     }
 
+    /**
+     * 拦截处理请求头
+     * @param clientChannel
+     * @param httpRequest
+     * @throws Exception
+     */
     public void beforeRequest(Channel clientChannel, HttpRequest httpRequest) throws Exception {
         this.httpRequest = httpRequest;
         if (this.posBeforeHead < intercepts.size()) {
@@ -74,6 +80,13 @@ public class HttpProxyInterceptPipeline implements Iterable<HttpProxyIntercept> 
         this.posBeforeHead = 0;
     }
 
+
+    /**
+     * 拦截处理请求体
+     * @param clientChannel
+     * @param httpContent
+     * @throws Exception
+     */
     public void beforeRequest(Channel clientChannel, HttpContent httpContent) throws Exception {
         if (this.posBeforeContent < intercepts.size()) {
             HttpProxyIntercept intercept = intercepts.get(this.posBeforeContent++);
@@ -82,6 +95,13 @@ public class HttpProxyInterceptPipeline implements Iterable<HttpProxyIntercept> 
         this.posBeforeContent = 0;
     }
 
+    /**
+     * 拦截处理响应头
+     * @param clientChannel
+     * @param proxyChannel
+     * @param httpResponse
+     * @throws Exception
+     */
     public void afterResponse(Channel clientChannel, Channel proxyChannel, HttpResponse httpResponse)
             throws Exception {
         this.httpResponse = httpResponse;
@@ -92,6 +112,13 @@ public class HttpProxyInterceptPipeline implements Iterable<HttpProxyIntercept> 
         this.posAfterHead = 0;
     }
 
+    /**
+     * 拦截处理响应体
+     * @param clientChannel
+     * @param proxyChannel
+     * @param httpContent
+     * @throws Exception
+     */
     public void afterResponse(Channel clientChannel, Channel proxyChannel, HttpContent httpContent)
             throws Exception {
         if (this.posAfterContent < intercepts.size()) {

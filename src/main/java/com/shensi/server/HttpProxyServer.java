@@ -4,6 +4,7 @@ import com.shensi.crt.CertCache;
 import com.shensi.crt.CertUtil;
 import com.shensi.exception.HttpProxyExceptionHandler;
 import com.shensi.handler.HttpProxyServerHandler;
+import com.shensi.handler.SslChannelInitializer;
 import com.shensi.intercept.HttpProxyInterceptInitializer;
 import com.shensi.proxy.ProxyConfig;
 import io.netty.bootstrap.ServerBootstrap;
@@ -14,12 +15,18 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
+import javax.net.ssl.SSLException;
+import java.io.InputStream;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Objects;
 
 /**
  * Created by shensi 2018-12-16
@@ -28,7 +35,6 @@ public class HttpProxyServer {
     //http代理隧道握手成功
     public final static HttpResponseStatus SUCCESS = new HttpResponseStatus(200, "Connection established");
     //证书&私钥
-//    private CaAndPrivateKey caCertFactory;
     private CaAndPrivateKey caAndPrivateKey;
 
     //服务端配置
@@ -52,6 +58,7 @@ public class HttpProxyServer {
 
         if (serverConfig.isSupportSsl()) {
             try {
+                //代理服务器作为客户端的SSLContext
                 serverConfig.setClientSslCtx(
                         SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
                                 .build());
@@ -62,7 +69,7 @@ public class HttpProxyServer {
                 PrivateKey caPriKey;
                 if (caAndPrivateKey == null) {
                     caCert = CertUtil.loadCert(classLoader.getResourceAsStream("ca.crt"));
-                    caPriKey = CertUtil.loadPriKey(classLoader.getResourceAsStream("ca_private.der"));
+                    caPriKey = CertUtil.loadPriKey(Objects.requireNonNull(classLoader.getResourceAsStream("ca_private.der")));
                     caAndPrivateKey = new CaAndPrivateKey(caCert, caPriKey);
                 } else {
                     caCert = caAndPrivateKey.getX509Certificate();
@@ -95,34 +102,17 @@ public class HttpProxyServer {
         }
     }
 
-    public HttpProxyServer serverConfig(HttpProxyServerConfig serverConfig) {
-        this.serverConfig = serverConfig;
-        return this;
-    }
 
-    public HttpProxyServer proxyInterceptInitializer(
-            HttpProxyInterceptInitializer proxyInterceptInitializer) {
-        this.proxyInterceptInitializer = proxyInterceptInitializer;
-        return this;
-    }
+    public void start(int port) throws InvalidKeySpecException, CertificateException, SSLException {
+        ClassLoader classLoader = Objects.requireNonNull(getClass().getClassLoader());
+        PrivateKey privateKey = CertUtil.loadPriKey(Objects.requireNonNull(classLoader.getResourceAsStream("ca_private.der")));
+        X509Certificate x509Certificate = CertUtil.loadCert(classLoader.getResourceAsStream("ca.crt"));
 
-    public HttpProxyServer httpProxyExceptionHandle(
-            HttpProxyExceptionHandler httpProxyExceptionHandler) {
-        this.httpProxyExceptionHandler = httpProxyExceptionHandler;
-        return this;
-    }
+        SslContext sslContext = SslContextBuilder.forServer(privateKey, x509Certificate).build();
 
-    public HttpProxyServer proxyConfig(ProxyConfig proxyConfig) {
-        this.proxyConfig = proxyConfig;
-        return this;
-    }
 
-    public HttpProxyServer caCertFactory(CaAndPrivateKey caAndPrivateKey) {
-        this.caAndPrivateKey = caAndPrivateKey;
-        return this;
-    }
 
-    public void start(int port) {
+        //加载配置
         init();
         bossGroup = new NioEventLoopGroup(serverConfig.getBossGroupThreads());
         workerGroup = new NioEventLoopGroup(serverConfig.getWorkerGroupThreads());
@@ -132,18 +122,24 @@ public class HttpProxyServer {
                     .channel(NioServerSocketChannel.class)
                     .option(ChannelOption.SO_BACKLOG, 100)
                     .handler(new LoggingHandler(LogLevel.DEBUG))
-                    .childHandler(new ChannelInitializer<Channel>() {
-                        @Override
-                        protected void initChannel(Channel ch) {
-                            ChannelPipeline pipeline = ch.pipeline();
-                            pipeline.addLast("httpCodec", new HttpServerCodec())
-                                    .addLast("serverHandle",
-                                    new HttpProxyServerHandler(serverConfig, proxyInterceptInitializer, proxyConfig,
-                                            httpProxyExceptionHandler));
+                    .childHandler(
+                        new ChannelInitializer<Channel>() {
+                            @Override
+                            protected void initChannel(Channel ch) {
+                                ChannelPipeline pipeline = ch.pipeline();
+                                pipeline.addLast("httpCodec", new HttpServerCodec()) //http编解码
+                                        .addLast("serverHandle",
+                                        new HttpProxyServerHandler(serverConfig, proxyInterceptInitializer, proxyConfig,
+                                                httpProxyExceptionHandler));
+                            }
                         }
-                    });
+//                          new SslChannelInitializer(sslContext, false, true)
+                    );
             ChannelFuture f = b.bind(port).sync();
-            f.channel().closeFuture().sync();
+            f.addListener((ChannelFutureListener) channelFuture -> System.out.println("proxy server start"))
+                    .channel()
+                    .closeFuture()
+                    .sync();
         } catch (Exception e) {
             System.out.println("proxy start failed");
         } finally {
@@ -157,6 +153,58 @@ public class HttpProxyServer {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
         CertCache.clear();
+    }
+
+    /**
+     * 设置代理服务器配置
+     * @param serverConfig
+     * @return
+     */
+    public HttpProxyServer serverConfig(HttpProxyServerConfig serverConfig) {
+        this.serverConfig = serverConfig;
+        return this;
+    }
+
+    /**
+     * 设置拦截器配置
+     * @param proxyInterceptInitializer
+     * @return
+     */
+    public HttpProxyServer proxyInterceptInitializer(
+            HttpProxyInterceptInitializer proxyInterceptInitializer) {
+        this.proxyInterceptInitializer = proxyInterceptInitializer;
+        return this;
+    }
+
+    /**
+     * 设置异常处理
+     * @param httpProxyExceptionHandler
+     * @return
+     */
+    public HttpProxyServer httpProxyExceptionHandle(
+            HttpProxyExceptionHandler httpProxyExceptionHandler) {
+        this.httpProxyExceptionHandler = httpProxyExceptionHandler;
+        return this;
+    }
+
+    /**
+     * 设置代理配置
+     * @param proxyConfig
+     * @return
+     */
+    public HttpProxyServer proxyConfig(ProxyConfig proxyConfig) {
+        this.proxyConfig = proxyConfig;
+        return this;
+    }
+
+    /**
+     * 设置ca和私钥
+     * @param caAndPrivateKey
+     * @return
+     */
+    public HttpProxyServer caAndPrivateKey(CaAndPrivateKey caAndPrivateKey) {
+        this.caAndPrivateKey = caAndPrivateKey;
+        return this;
     }
 
 }

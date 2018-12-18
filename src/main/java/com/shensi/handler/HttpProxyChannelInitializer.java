@@ -10,14 +10,14 @@ import io.netty.handler.proxy.ProxyHandler;
  * Created by shensi 2018-12-16
  * HTTP代理，转发解码后的HTTP报文
  */
-public class HttpProxyInitializer extends ChannelInitializer {
+public class HttpProxyChannelInitializer extends ChannelInitializer {
 
     private Channel clientChannel;
     private RequestProto requestProto;
     private ProxyHandler proxyHandler;
 
-    public HttpProxyInitializer(Channel clientChannel, RequestProto requestProto,
-                                ProxyHandler proxyHandler) {
+    public HttpProxyChannelInitializer(Channel clientChannel, RequestProto requestProto,
+                                       ProxyHandler proxyHandler) {
         this.clientChannel = clientChannel;
         this.requestProto = requestProto;
         this.proxyHandler = proxyHandler;

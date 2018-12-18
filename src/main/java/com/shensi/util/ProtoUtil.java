@@ -11,24 +11,29 @@ import java.util.regex.Pattern;
  * Created by shensi 2018-12-16
  */
 public class ProtoUtil {
-
+    /**
+     * 提取host和port,判断协议是否为https
+     * @param httpRequest
+     * @return
+     */
     public static RequestProto getRequestProto(HttpRequest httpRequest) {
         RequestProto requestProto = new RequestProto();
         int port = -1;
         String hostStr = httpRequest.headers().get(HttpHeaderNames.HOST);
+        //直接从请求头获取host失败再从uri上获取
         if (hostStr == null) {
             Pattern pattern = Pattern.compile("^(?:https?://)?(?<host>[^/]*)/?.*$");
             Matcher matcher = pattern.matcher(httpRequest.uri());
             if (matcher.find()) {
                 hostStr = matcher.group("host");
             } else {
-                return null;
+                throw new RuntimeException("获取host失败");
             }
         }
         String uriStr = httpRequest.uri();
         Pattern pattern = Pattern.compile("^(?:https?://)?(?<host>[^:]*)(?::(?<port>\\d+))?(/.*)?$");
         Matcher matcher = pattern.matcher(hostStr);
-        //先从host上取端口号没取到再从uri上取端口号 issues#4
+        //先从host上取端口号没取到再从uri上取端口号
         String portTemp = null;
         if (matcher.find()) {
             requestProto.setHost(matcher.group("host"));
@@ -58,7 +63,6 @@ public class ProtoUtil {
     }
 
     public static class RequestProto implements Serializable {
-
         private static final long serialVersionUID = -6471051659605127698L;
         private String host;
         private int port;
