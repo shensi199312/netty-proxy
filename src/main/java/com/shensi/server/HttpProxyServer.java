@@ -20,7 +20,6 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
 import javax.net.ssl.SSLException;
-import java.io.InputStream;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
@@ -36,7 +35,6 @@ public class HttpProxyServer {
     public final static HttpResponseStatus SUCCESS = new HttpResponseStatus(200, "Connection established");
     //证书&私钥
     private CaAndPrivateKey caAndPrivateKey;
-
     //服务端配置
     private HttpProxyServerConfig serverConfig;
     //拦截器
@@ -68,8 +66,8 @@ public class HttpProxyServer {
                 X509Certificate caCert;
                 PrivateKey caPriKey;
                 if (caAndPrivateKey == null) {
-                    caCert = CertUtil.loadCert(classLoader.getResourceAsStream("ca.crt"));
-                    caPriKey = CertUtil.loadPriKey(Objects.requireNonNull(classLoader.getResourceAsStream("ca_private.der")));
+                    caCert = CertUtil.loadCert(classLoader.getResourceAsStream("cert.pem"));
+                    caPriKey = CertUtil.loadPriKey(Objects.requireNonNull(classLoader.getResourceAsStream("privkey.pem")));
                     caAndPrivateKey = new CaAndPrivateKey(caCert, caPriKey);
                 } else {
                     caCert = caAndPrivateKey.getX509Certificate();

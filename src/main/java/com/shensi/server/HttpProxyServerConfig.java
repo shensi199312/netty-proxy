@@ -18,9 +18,7 @@ public class HttpProxyServerConfig {
     private Date caNotBefore;
     //证书结束时间
     private Date caNotAfter;
-
     private PrivateKey caPriKey;
-
     private PrivateKey serverPriKey;
     private PublicKey serverPubKey;
     private EventLoopGroup proxyLoopGroup;

@@ -11,6 +11,7 @@ import com.shensi.server.HttpProxyServer;
 import com.shensi.server.HttpProxyServerConfig;
 import com.shensi.util.ProtoUtil;
 import com.shensi.util.ProtoUtil.RequestProto;
+import com.shensi.util.SslContextUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -135,9 +136,10 @@ public class HttpProxyServerHandler extends ChannelInboundHandlerAdapter {
                     int port = ((InetSocketAddress) ctx.channel().localAddress()).getPort();
 
 
-                    SslContext sslCtx = SslContextBuilder
-                            .forServer(serverConfig.getServerPriKey(), CertCache.getCert(port, this.desHost, serverConfig))
-                            .build();
+//                    SslContext sslCtx = SslContextBuilder
+//                            .forServer(serverConfig.getServerPriKey(), CertCache.getCert(port, this.desHost, serverConfig))
+//                            .build();
+                    SslContext sslCtx = SslContextUtil.getSslContextByClassPath("cert.pem", "privkey.pem");
 
                     ctx.pipeline().addFirst("httpCodec", new HttpServerCodec());
                     ctx.pipeline().addFirst("sslHandle", sslCtx.newHandler(ctx.alloc()));

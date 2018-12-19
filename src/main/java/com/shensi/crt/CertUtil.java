@@ -248,20 +248,4 @@ public class CertUtil {
                 .build(keyPair.getPrivate());
         return new JcaX509CertificateConverter().getCertificate(jv3Builder.build(signer));
     }
-
-    public static void main(String[] args) throws Exception {
-        //生成ca证书和私钥
-        KeyPair keyPair = CertUtil.genKeyPair();
-        File caCertFile = new File("e:/ssl/Proxyee.crt");
-        if (caCertFile.exists()) {
-            caCertFile.delete();
-        }
-        Files.write(Paths.get(caCertFile.toURI()),
-                CertUtil.genCACert(
-                        "C=CN, ST=GD, L=SZ, O=lee, OU=study, CN=Proxyee",
-                        new Date(),
-                        new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(3650)),
-                        keyPair)
-                        .getEncoded());
-    }
 }
