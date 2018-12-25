@@ -1,4 +1,4 @@
 proxy:
-  - domains: localhost
-    cert: ca.crt
-    privateKey: ca_private.der
+  - domains: shensi1993.xyz
+    keyStore: store.jks
+    keyStorePassword: g5373d41f72m52s

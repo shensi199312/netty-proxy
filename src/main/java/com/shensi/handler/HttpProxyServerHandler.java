@@ -117,8 +117,6 @@ public class HttpProxyServerHandler extends ChannelInboundHandlerAdapter {
                 if (byteBuf.getByte(0) == 22) { //ssl handshake content type = 22
                     isSsl = true;
 
-
-
                     //判断是否是代理的域名
                     CaAndPrivateKey caAndPrivateKey;
                     if ((caAndPrivateKey = ProxyDomains.domainFilter(desHost)) != null){

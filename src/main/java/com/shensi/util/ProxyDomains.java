@@ -4,10 +4,12 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.shensi.crt.CertUtil;
 import com.shensi.server.CaAndPrivateKey;
+import io.netty.handler.ssl.SslContextBuilder;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.security.PrivateKey;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
@@ -40,24 +42,44 @@ public class ProxyDomains {
 
             proxy.forEach(item -> {
                 String domains = item.get("domains");
-                String cert = item.get("cert");
-                String privateKey = item.get("privateKey");
+//                String cert = item.get("cert");
+//                String privateKey = item.get("privateKey");
+//
+//                try {
+//                    X509Certificate ca = CertUtil.loadCert(classLoader.getResourceAsStream(cert));
+//                    PrivateKey pk = CertUtil.loadPriKey(Objects.requireNonNull(classLoader.getResourceAsStream(privateKey)));
+//                    CaAndPrivateKey caAndPrivateKey = new CaAndPrivateKey(ca, pk);
+//
+//                    Iterable<String> split = Splitter.on(",").omitEmptyStrings().trimResults().split(domains);
+//                    split.forEach(domain -> config.put(domain, caAndPrivateKey));
+//                } catch (CertificateException e) {
+//                    e.printStackTrace();
+//                    throw new RuntimeException("invalid cert");
+//                } catch (InvalidKeySpecException e) {
+//                    e.printStackTrace();
+//                    throw new RuntimeException("invalid privateKey");
+//                }
+                String keyStore = item.get("keyStore");
+                String keyStorePassword = item.get("keyStorePassword");
 
+
+                InputStream store = SslContextUtil.class.getClassLoader().getResourceAsStream(keyStore);
+
+                char[] keyPassword = keyStorePassword.toCharArray();
                 try {
-                    X509Certificate ca = CertUtil.loadCert(classLoader.getResourceAsStream(cert));
-                    PrivateKey pk = CertUtil.loadPriKey(Objects.requireNonNull(classLoader.getResourceAsStream(privateKey)));
-                    CaAndPrivateKey caAndPrivateKey = new CaAndPrivateKey(ca, pk);
+                    KeyStore ks = KeyStore.getInstance("JKS");
+                    ks.load(store, keyPassword);
+                    String alias = ks.aliases().nextElement();
+                    X509Certificate certificate = (X509Certificate)ks.getCertificate(alias);
+                    PrivateKey privateKey = (PrivateKey) ks.getKey(alias, keyPassword);
+                    CaAndPrivateKey caAndPrivateKey = new CaAndPrivateKey(certificate, privateKey);
 
                     Iterable<String> split = Splitter.on(",").omitEmptyStrings().trimResults().split(domains);
                     split.forEach(domain -> config.put(domain, caAndPrivateKey));
-                } catch (CertificateException e) {
+                } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException | UnrecoverableKeyException e) {
                     e.printStackTrace();
-                    throw new RuntimeException("invalid cert");
-                } catch (InvalidKeySpecException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException("invalid privateKey");
+                    throw new RuntimeException("read keystore failed");
                 }
-
             });
         }
     }

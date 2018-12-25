@@ -118,6 +118,7 @@ public class HttpProxyServer {
                 }
             }).channel().closeFuture().sync();
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("proxy start failed");
         } finally {
             bossGroup.shutdownGracefully();
