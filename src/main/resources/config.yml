@@ -1,0 +1,4 @@
+proxy:
+  - domains: localhost
+    cert: ca.crt
+    privateKey: ca_private.der

@@ -31,8 +31,4 @@ public class CaAndPrivateKey {
     public void setPrivateKey(PrivateKey privateKey) {
         this.privateKey = privateKey;
     }
-
-//    X509Certificate getCACert() throws Exception;
-//
-//    PrivateKey getCAPriKey() throws Exception;
 }

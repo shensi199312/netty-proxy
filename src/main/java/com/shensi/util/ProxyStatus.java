@@ -4,7 +4,9 @@ package com.shensi.util;
  * Created by shensi on 2018-12-18
  */
 public enum  ProxyStatus {
-    CONNECT(0);
+    CONNECT(0),
+    SSL_TO_TARGET(1),
+    SSL_TO_TARGET_SUC(2);
 
 
     private int status;

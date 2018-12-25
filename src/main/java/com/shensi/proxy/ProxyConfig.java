@@ -74,7 +74,7 @@ public class ProxyConfig implements Serializable {
 
     @Override
     public String toString() {
-        return "ProxyConfig{" +
+        return "ProxyDomains{" +
                 "proxyType=" + proxyType +
                 ", host='" + host + '\'' +
                 ", port=" + port +

@@ -31,6 +31,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.google.common.base.Splitter;
+import io.netty.handler.ssl.PemPrivateKey;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
@@ -47,11 +49,11 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
  */
 public class CertUtil {
 
-    private static KeyFactory keyFactory;
+    private static KeyFactory RSAKeyFactory;
 
     static {
         try {
-            keyFactory = KeyFactory.getInstance("RSA");
+            RSAKeyFactory = KeyFactory.getInstance("RSA");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("no rsa algorithm",e);
         }
@@ -60,8 +62,9 @@ public class CertUtil {
     }
 
     private static KeyFactory getKeyFactory() {
-        return keyFactory;
+        return RSAKeyFactory;
     }
+
 
     /**
      * 生成RSA公私密钥对,长度为2048
@@ -74,7 +77,6 @@ public class CertUtil {
 
     /**
      * 从文件加载RSA私钥
-     * openssl pkcs8 -topk8 -nocrypt -inform PEM -outform DER -in ca.key -out ca_private.der
      */
     public static PrivateKey loadPriKey(byte[] bts) throws InvalidKeySpecException {
         EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(bts);
@@ -122,7 +124,6 @@ public class CertUtil {
 
     /**
      * 从文件加载RSA公钥
-     * openssl rsa -in ca.key -pubout -outform DER -out ca_pub.der
      */
     public static PublicKey loadPubKey(byte[] bts) throws Exception {
         EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(bts);
@@ -184,22 +185,12 @@ public class CertUtil {
     /**
      * 读取ssl证书使用者信息
      */
-    public static String getSubject(InputStream inputStream) throws Exception {
-        X509Certificate certificate = loadCert(inputStream);
-        //读出来顺序是反的需要反转下
-        List<String> tempList = Arrays.asList(certificate.getIssuerDN().toString().split(", "));
-        return IntStream.rangeClosed(0, tempList.size() - 1)
-                .mapToObj(i -> tempList.get(tempList.size() - i - 1)).collect(Collectors.joining(", "));
-    }
-
-    /**
-     * 读取ssl证书使用者信息
-     */
     public static String getSubject(X509Certificate certificate) throws Exception {
         //读出来顺序是反的需要反转下
         List<String> tempList = Arrays.asList(certificate.getIssuerDN().toString().split(", "));
         return IntStream.rangeClosed(0, tempList.size() - 1)
-                .mapToObj(i -> tempList.get(tempList.size() - i - 1)).collect(Collectors.joining(", "));
+                .mapToObj(i -> tempList.get(tempList.size() - i - 1))
+                .collect(Collectors.joining(", "));
     }
 
     /**

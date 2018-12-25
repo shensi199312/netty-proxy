@@ -11,12 +11,13 @@ import io.netty.util.ReferenceCountUtil;
 
 /**
  * Created by shensi 2018-12-16
+ * 进行中间人操作
  */
-public class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
+public class HttpMITMClientHandler extends ChannelInboundHandlerAdapter {
 
     private Channel clientChannel;
 
-    public HttpProxyClientHandler(Channel clientChannel) {
+    public HttpMITMClientHandler(Channel clientChannel) {
         this.clientChannel = clientChannel;
     }
 
@@ -28,7 +29,7 @@ public class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
             return;
         }
         HttpProxyInterceptPipeline interceptPipeline = ((HttpProxyServerHandler) clientChannel.pipeline()
-                .get("serverHandle")).getInterceptPipeline();
+                .get("serverHandler")).getInterceptPipeline();
         if (msg instanceof HttpResponse) {
             interceptPipeline.afterResponse(clientChannel, ctx.channel(), (HttpResponse) msg);
         } else if (msg instanceof HttpContent) {
@@ -49,7 +50,7 @@ public class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
         ctx.channel().close();
         clientChannel.close();
         HttpProxyExceptionHandler exceptionHandle = ((HttpProxyServerHandler) clientChannel.pipeline()
-                .get("serverHandle")).getExceptionHandle();
+                .get("serverHandler")).getExceptionHandle();
         exceptionHandle.afterCatch(clientChannel, ctx.channel(), cause);
     }
 }

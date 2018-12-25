@@ -16,7 +16,7 @@ public class InterceptResponseContentHttpProxyServer {
 
     public static void main(String[] args) throws Exception {
         HttpProxyServerConfig config = new HttpProxyServerConfig();
-        config.setSupportSsl(true);
+//        config.setSupportSsl(true);
         new HttpProxyServer()
                 .serverConfig(config)
                 .proxyInterceptInitializer(new HttpProxyInterceptInitializer() {

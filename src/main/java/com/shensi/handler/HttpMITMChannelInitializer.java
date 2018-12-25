@@ -5,19 +5,21 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.proxy.ProxyHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
 /**
  * Created by shensi 2018-12-16
- * HTTP代理，转发解码后的HTTP报文
  */
-public class HttpProxyChannelInitializer extends ChannelInitializer {
+public class HttpMITMChannelInitializer extends ChannelInitializer {
 
     private Channel clientChannel;
     private RequestProto requestProto;
     private ProxyHandler proxyHandler;
 
-    public HttpProxyChannelInitializer(Channel clientChannel, RequestProto requestProto,
-                                       ProxyHandler proxyHandler) {
+    public HttpMITMChannelInitializer(Channel clientChannel, RequestProto requestProto,
+                                      ProxyHandler proxyHandler) {
         this.clientChannel = clientChannel;
         this.requestProto = requestProto;
         this.proxyHandler = proxyHandler;
@@ -29,12 +31,12 @@ public class HttpProxyChannelInitializer extends ChannelInitializer {
             ch.pipeline().addLast(proxyHandler);
         }
         if (requestProto.getSsl()) {
-            ch.pipeline().addLast(
-                    ((HttpProxyServerHandler) clientChannel.pipeline().get("serverHandle")).getServerConfig()
-                            .getClientSslCtx()
-                            .newHandler(ch.alloc(), requestProto.getHost(), requestProto.getPort()));
+            SslContext sslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
+                    .build();
+
+            ch.pipeline().addLast(sslContext.newHandler(ch.alloc(), requestProto.getHost(), requestProto.getPort()));
         }
         ch.pipeline().addLast("httpCodec", new HttpClientCodec());
-        ch.pipeline().addLast("proxyClientHandle", new HttpProxyClientHandler(clientChannel));
+        ch.pipeline().addLast("proxyClientHandler", new HttpMITMClientHandler(clientChannel));
     }
 }

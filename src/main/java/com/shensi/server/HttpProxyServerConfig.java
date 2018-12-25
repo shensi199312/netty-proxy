@@ -11,7 +11,6 @@ import java.util.Date;
  * Created by shensi 2018-12-16
  */
 public class HttpProxyServerConfig {
-    private SslContext clientSslCtx;
     //认证机构
     private String issuer;
     //证书起始时间
@@ -21,19 +20,14 @@ public class HttpProxyServerConfig {
     private PrivateKey caPriKey;
     private PrivateKey serverPriKey;
     private PublicKey serverPubKey;
-    private EventLoopGroup proxyLoopGroup;
+
+
     private int bossGroupThreads;
     private int workerGroupThreads;
     private int proxyGroupThreads;
-    private boolean supportSsl;
+//    //是否支持ssl
+//    private boolean supportSsl;
 
-    public SslContext getClientSslCtx() {
-        return clientSslCtx;
-    }
-
-    public void setClientSslCtx(SslContext clientSslCtx) {
-        this.clientSslCtx = clientSslCtx;
-    }
 
     public String getIssuer() {
         return issuer;
@@ -83,21 +77,14 @@ public class HttpProxyServerConfig {
         this.serverPubKey = serverPubKey;
     }
 
-    public EventLoopGroup getProxyLoopGroup() {
-        return proxyLoopGroup;
-    }
 
-    public void setProxyLoopGroup(EventLoopGroup proxyLoopGroup) {
-        this.proxyLoopGroup = proxyLoopGroup;
-    }
-
-    public boolean isSupportSsl() {
-        return supportSsl;
-    }
-
-    public void setSupportSsl(boolean supportSsl) {
-        this.supportSsl = supportSsl;
-    }
+//    public boolean isSupportSsl() {
+//        return supportSsl;
+//    }
+//
+//    public void setSupportSsl(boolean supportSsl) {
+//        this.supportSsl = supportSsl;
+//    }
 
     public int getBossGroupThreads() {
         return bossGroupThreads;

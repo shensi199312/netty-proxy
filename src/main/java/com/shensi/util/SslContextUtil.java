@@ -1,12 +1,14 @@
 package com.shensi.util;
 
 import com.shensi.crt.CertUtil;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 
 import javax.net.ssl.SSLException;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
@@ -57,5 +59,16 @@ public class SslContextUtil {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
         }
+    }
+
+    public static String sslRecordDecode(String recordCode){
+        byte[] bytes = ByteBufUtil.decodeHexDump(recordCode);
+        return new String(bytes, Charset.forName("utf8"));
+    }
+
+
+    public static void main(String[] args) {
+        String s = SslContextUtil.sslRecordDecode("434f4e4e454354206c6f63616c686f73743a34343320485454502f312e310d0a486f73743a206c6f63616c686f73743a3434330d0a50726f78792d436f6e6e656374696f6e3a206b6565702d616c6976650d0a557365722d4167656e743a204d6f7a696c6c612f352e3020284d6163696e746f73683b20496e74656c204d6163204f5320582031305f31345f3029204170706c655765624b69742f3533372e333620284b48544d4c2c206c696b65204765636b6f29204368726f6d652f37312e302e333537382e3938205361666172692f3533372e33360d0a0d0a");
+        System.out.println(s);
     }
 }

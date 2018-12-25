@@ -1,15 +1,12 @@
 package com.shensi.handler;
 
-import com.shensi.exception.HttpProxyExceptionHandler;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.proxy.ProxyHandler;
 
 /**
  * Created by shensi 2018-12-16
- * http代理隧道，转发原始报文
+ * 透传
  */
 public class TunnelProxyInitializer extends ChannelInitializer {
 
@@ -27,26 +24,6 @@ public class TunnelProxyInitializer extends ChannelInitializer {
         if (proxyHandler != null) {
             ch.pipeline().addLast(proxyHandler);
         }
-        ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
-            @Override
-            public void channelRead(ChannelHandlerContext ctx0, Object msg0) throws Exception {
-                clientChannel.writeAndFlush(msg0);
-            }
-
-            @Override
-            public void channelUnregistered(ChannelHandlerContext ctx0) throws Exception {
-                ctx0.channel().close();
-                clientChannel.close();
-            }
-
-            @Override
-            public void exceptionCaught(ChannelHandlerContext ctx0, Throwable cause) throws Exception {
-                ctx0.channel().close();
-                clientChannel.close();
-                HttpProxyExceptionHandler exceptionHandle = ((HttpProxyServerHandler) clientChannel.pipeline()
-                        .get("serverHandle")).getExceptionHandle();
-                exceptionHandle.afterCatch(clientChannel, ctx0.channel(), cause);
-            }
-        });
+        ch.pipeline().addLast(new TunnelHandler(clientChannel));
     }
 }

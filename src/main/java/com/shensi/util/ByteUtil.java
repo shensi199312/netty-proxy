@@ -1,6 +1,8 @@
 package com.shensi.util;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.util.AsciiString;
 
 import java.nio.charset.Charset;
 
@@ -42,5 +44,9 @@ public class ByteUtil {
         byteBuf.writeBytes(str.getBytes(charset));
         byteBuf.writeBytes(end);
         return byteBuf;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(AsciiString.c2b('C'));
     }
 }

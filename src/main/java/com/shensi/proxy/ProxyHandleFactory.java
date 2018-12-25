@@ -16,8 +16,7 @@ public class ProxyHandleFactory {
         ProxyHandler proxyHandler = null;
         if (config != null) {
             boolean isAuth = config.getUser() != null && config.getPwd() != null;
-            InetSocketAddress inetSocketAddress = new InetSocketAddress(config.getHost(),
-                    config.getPort());
+            InetSocketAddress inetSocketAddress = new InetSocketAddress(config.getHost(), config.getPort());
             switch (config.getProxyType()) {
                 case HTTP:
                     if (isAuth) {

@@ -9,19 +9,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by shensi 2018-12-16
+ * 动态自签证书缓存
  */
 public class CertCache {
 
-    private static Map<Integer, Map<String, X509Certificate>> certCache = new ConcurrentHashMap<>();
+    private static Map<Integer, Map<String, X509Certificate>> certCache = new ConcurrentHashMap<>(100);
 
-    /**
-     * 获取公钥认证证书
-     * @param port
-     * @param host
-     * @param serverConfig
-     * @return
-     * @throws Exception
-     */
+
     public static X509Certificate getCert(Integer port, String host, HttpProxyServerConfig serverConfig)
             throws Exception {
         X509Certificate cert = null;
